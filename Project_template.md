@@ -86,7 +86,7 @@
 # Задание 3. Разработка ER-диаграммы
 
 [С4 Code diagram](diagrams/er/er.puml)
-![С4 Code diagram](diagrams/re/er.png)
+![С4 Code diagram](diagrams/er/er.png)
 
 
 # ❌ Задание 4. Создание и документирование API
