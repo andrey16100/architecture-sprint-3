@@ -1,0 +1,70 @@
+@startuml
+!include <C4/C4_Container>
+
+LAYOUT_TOP_DOWN()
+
+!unquoted procedure ContainerDb($alias, $label, $techn="", $descr="", $sprite="", $tags="", $link="")
+  $getElementLine("database", "container", $alias, $label, $techn, $descr, $sprite, $tags, $link)
+!endprocedure
+
+!unquoted procedure ContainerQueue($alias, $label, $techn="", $descr="", $sprite="", $tags="", $link="")
+  $getElementLine("queue", "container", $alias, $label, $techn, $descr, $sprite, $tags, $link)
+!endprocedure
+
+Person(user, "Пользователь", "WEB/MobileApp")
+Person(admin, "Администратор", "WEB")
+
+Container(gateway, "API Gateway", "Kusk", "Марширутизация запросов")
+
+System_Boundary(device_management, "Регистрация и управление устройствами") {
+  Container(devices, "Управление устройствами", "Java/Spring")
+  ContainerDb(devicesDB, "DB Устройств", "Postgres")
+  Container(eventProcessing, "Обработка событий", "Java/Spring")
+  ContainerDb(eventDB, "DB Событий", "Clickhouse", "Данные о событиях от устройств")
+  Container(scenario, "Автоматизация сценариев", "Java/Spring")
+  ContainerDb(scenarioDB, "DB Сценариев", "Postgres", "Данные о сценариях")
+  ContainerQueue(device_queue, "Шина данных", "Kafka")
+  Container(report, "Модуль аналитики/отчетов", "Java/Spring")
+  
+}
+
+System_Boundary(user_management, "Управление пользователями и правами доступа", "keycloak") {
+    Container(web_ui, "Keycloak Admin Console", "HTML/JS", "Веб-интерфейс для управления")
+    Container(auth_server, "Keycloak Server", "Java (Quarkus)", "Обработка аутентификации и авторизации")
+    ContainerDb(auth_db, "База данных", "PostgreSQL", "Хранит данные пользователей, клиентов, ролей")
+    Container(auth_cache, "Кэш (Infinispan)", "Distributed Cache", "Кэширует сессии и токены")
+}
+
+user -[hidden] admin
+user -[hidden]--> gateway
+gateway -[hidden]--> device_management
+gateway -[hidden]--> user_management
+device_management -[hidden] user_management
+
+System_Ext(extDevices,"IoT устройства")
+System_Ext(extNotification,"Сервисы уведомлений")
+
+Rel(extDevices, eventProcessing, "", "MQTT")
+Rel(devices, extDevices, "", "TCP")
+Rel(scenario, extNotification, "SMS/Push", "")
+Rel(eventProcessing, device_queue, "", "TCP")
+Rel(user, gateway, "", "REST API")
+Rel(admin, gateway, "", "REST API")
+Rel(web_ui, auth_server, "Управляет", "REST API")
+Rel(auth_server, auth_db, "Читает/записывает", "JDBC")
+Rel(auth_server, auth_cache, "Кэширует данные", "HotRod Protocol")
+Rel(auth_server, gateway, "Возвращает токены", "JWT/OAuth2")
+Rel(gateway, auth_server, "Запрашивает аутентификацию", "OIDC Redirect")
+Rel(gateway, report, "Запрос отчетов", "REST API")
+Rel(report, eventDB, "Запрос данных", "JDBC") 
+Rel(devices, device_queue, "", "TCP")
+
+Rel(gateway, devices, "","REST API")
+Rel(devices, devicesDB, "Обмен данными", "JDBC")
+
+Rel(gateway, scenario, "","REST API")
+Rel(eventProcessing, eventDB, "Обмен данными", "JDBC")
+Rel(device_queue, scenario, "Подписка на события устройств", "TCP")
+Rel(scenario, scenarioDB, "Обмен данными", "JDBC")
+
+@enduml

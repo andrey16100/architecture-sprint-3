@@ -1,0 +1,125 @@
+@startuml
+skinparam class {
+    BackgroundColor White
+    ArrowColor #0078D7
+    BorderColor #0078D7
+}
+
+' Основные классы
+class DeviceController {
+  + DeviceService deviceService
+  + registerDevice(DeviceRegistrationRequest) : ResponseEntity<Device>
+  + getDevice(String) : ResponseEntity<Device>
+  + updateDevice(String, DeviceUpdateRequest) : ResponseEntity<Device>
+  + deleteDevice(String) : ResponseEntity<Void>
+  + sendCommand(String, DeviceCommand) : ResponseEntity<Void>
+}
+
+class DeviceService {
+  - DeviceRegistry deviceRegistry
+  - DeviceAdapter deviceAdapter
+  - KafkaTemplate<String, DeviceEvent> kafkaTemplate
+  + registerDevice(DeviceRegistrationRequest) : Device
+  + getDevice(String) : Optional<Device>
+  + updateDevice(String, DeviceUpdateRequest) : Device
+  + deleteDevice(String) : void
+  + sendCommand(String, DeviceCommand) : void
+  - publishDeviceEvent(Device, String) : void
+}
+
+class DeviceAdapter {
+  - RestTemplate restTemplate
+  + sendCommand(Device, DeviceCommand) : void
+}
+
+class DeviceRegistry {
+  - Map<String, Device> devices
+  + save(Device) : Device
+  + findById(String) : Optional<Device>
+  + delete(String) : void
+  + findAll() : List<Device>
+}
+
+' Модели данных
+class Device {
+  - String id
+  - String name
+  - String type
+  - String ipAddress
+  - DeviceStatus status
+  - Instant lastCommandTime
+}
+
+enum DeviceStatus {
+  REGISTERED
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+class DeviceRegistrationRequest {
+  - String name
+  - String type
+  - String ipAddress
+}
+
+class DeviceUpdateRequest {
+  - String name
+  - String ipAddress
+}
+
+class DeviceCommand {
+  - String commandType
+  - Map<String, Object> parameters
+}
+
+class DeviceEvent {
+  - String deviceId
+  - DeviceStatus status
+  - String eventType
+  - Instant timestamp
+}
+
+' Исключения
+class DeviceNotFoundException {
+  + DeviceNotFoundException(String)
+}
+
+class DeviceCommunicationException {
+  + DeviceCommunicationException(String)
+  + DeviceCommunicationException(String, Throwable)
+}
+
+' Отношения между классами
+DeviceController --> DeviceService : depends on
+DeviceService --> DeviceRegistry : depends on
+DeviceService --> DeviceAdapter : depends on
+DeviceService --> KafkaTemplate : depends on
+DeviceService --> DeviceEvent : creates
+DeviceAdapter --> Device : uses
+DeviceAdapter --> DeviceCommand : uses
+DeviceRegistry --> Device : manages
+DeviceService --> DeviceNotFoundException : throws
+DeviceAdapter --> DeviceCommunicationException : throws
+
+DeviceService --> Device : uses
+DeviceService --> DeviceRegistrationRequest : uses
+DeviceService --> DeviceUpdateRequest : uses
+DeviceService --> DeviceCommand : uses
+
+DeviceController --> DeviceRegistrationRequest : uses
+DeviceController --> DeviceUpdateRequest : uses
+DeviceController --> DeviceCommand : uses
+
+' Стили для разных типов классов
+annotation "RestController" as RestController <<Stereotype>> 
+annotation "Service" as Service <<Stereotype>>
+annotation "Repository" as Repository <<Stereotype>>
+annotation "Component" as Component <<Stereotype>>
+
+DeviceController ..|> RestController
+DeviceService ..|> Service
+DeviceRegistry ..|> Repository
+DeviceAdapter ..|> Component
+
+@enduml
