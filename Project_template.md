@@ -69,16 +69,19 @@
 **Диаграмма контейнеров (Containers)**
 
 [С4 Container diagram](diagrams/container/ContainerC4.puml)
+
 ![С4 Container diagram](diagrams/container/ContainerC4.png)
 
 **Диаграмма компонентов (Components)**
 
 [С4 Component diagram](diagrams/container/DeviceComponent.puml)
+
 ![С4 Component diagram](diagrams/container/DeviceComponent.png)
 
 **Диаграмма кода (Code)**
 
 [С4 Code diagram](diagrams/container/DeviceClasses.puml)
+
 ![С4 Code diagram](diagrams/container/DeviceClasses.png)
 
 Добавьте одну диаграмму или несколько.
@@ -86,6 +89,7 @@
 # Задание 3. Разработка ER-диаграммы
 
 [С4 Code diagram](diagrams/container/er.puml)
+
 ![С4 Code diagram](diagrams/container/er.png)
 
 
