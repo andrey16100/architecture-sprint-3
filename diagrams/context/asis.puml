@@ -1,0 +1,18 @@
+@startuml Accurate Heating System Context
+!include <C4/C4_Context>
+
+title Контекстная диаграмма системы "Тёплый дом"
+
+Person(admin, "Администратор", "Подключает новое оборудование к системе")
+Person(user, "Пользователь", "Управляет температурой\nПолучает данные о температуре")
+
+System(heating_system, "Система управления отоплением", "Spring Boot монолит:\n- REST API для датчиков\n- Логика управления\n- Postgres DB")
+
+System_Ext(sensor, "IoT Датчики", "Отправляет данные через HTTP")
+
+
+Rel(user, heating_system, "REST запросы через Web интерфейс")
+Rel(heating_system, sensor, "REST Запросы получения данных о температуре\nУстановка целевой температуры")
+Rel(admin, heating_system, "Подключение нового оборудования")
+
+@enduml

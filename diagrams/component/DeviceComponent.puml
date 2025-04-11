@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Component>
+
+package "Регистрация и управление устройствами" {
+  Component(deviceController, "DeviceController", "REST Controller", "CRUD операции с устройствами, команды для выполнения на устройствах")
+  Component(deviceService, "DeviceService", "Service", "Логика работы с устройствами")
+  Component(deviceAdapter, "DeviceAdapter", "Adapter", "Отправка команд на устройства")
+  Component(deviceRegistry, "DeviceRegistry", "Registry", "Реестр устройств")
+}
+
+Component(deviceQueue, "Шина данных", "Kafka")
+Component_Ext(extDevices, "IoT устройства")
+
+Rel(deviceController, deviceService, "Вызывает команды работы с устройствами")
+Rel(deviceService, deviceAdapter, "Команды для исполнения")
+Rel(deviceService, deviceRegistry, "Сохранить/получить данные по устройствам")
+
+Rel(deviceService, deviceQueue, "Собитыя изменения статуса устройства")
+Rel(deviceAdapter, extDevices, "Команды устройствам")
+
+@enduml

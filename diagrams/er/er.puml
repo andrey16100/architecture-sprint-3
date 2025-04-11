@@ -1,0 +1,78 @@
+@startuml
+' ER Diagram for Device Management Domain
+
+entity "Устройства" {
+  + device_id [PK]
+  --
+  name : VARCHAR(255)
+  type : VARCHAR(100)
+  status : ENUM('active', 'inactive', 'maintenance')
+  location : VARCHAR(255)
+  registration_date : TIMESTAMP
+  last_seen : TIMESTAMP
+  firmware_version : VARCHAR(50)
+  metadata : JSON
+}
+
+entity "Пользователи_устройств" {
+  + user_device_id [PK]
+  --
+  + user_id [FK]
+  + device_id [FK]
+  role : ENUM('owner', 'guest', 'admin')
+  access_level : INTEGER
+  added_at : TIMESTAMP
+}
+
+entity "События" {
+  + event_id [PK]
+  --
+  + device_id [FK]
+  event_type : VARCHAR(100)
+  event_data : JSON
+  timestamp : TIMESTAMP
+  severity : ENUM('info', 'warning', 'error', 'critical')
+  processed : BOOLEAN
+}
+
+entity "Сценарии" {
+  + scenario_id [PK]
+  --
+  name : VARCHAR(255)
+  description : TEXT
+  trigger_condition : JSON
+  actions : JSON
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "Устройства_сценариев" {
+  + scenario_device_id [PK]
+  --
+  + scenario_id [FK]
+  + device_id [FK]
+  role : ENUM('trigger', 'action')
+  parameters : JSON
+}
+
+entity "Отчеты" {
+  + report_id [PK]
+  --
+  report_type : VARCHAR(100)
+  parameters : JSON
+  generated_at : TIMESTAMP
+  period_start : TIMESTAMP
+  period_end : TIMESTAMP
+  data : JSON
+}
+
+' Relationships
+Устройства ||--o{ События : "генерирует"
+Устройства }o--o{ Пользователи_устройств : "доступ"
+Сценарии }o--o{ Устройства_сценариев : "использует"
+События }o--|| Устройства_сценариев : "может_активировать"
+Отчеты }o--|| Устройства : "анализирует"
+Отчеты }o--|| События : "анализирует"
+
+@enduml
